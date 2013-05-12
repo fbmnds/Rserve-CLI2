@@ -1,0 +1,15 @@
+/target
+/lib
+/classes
+/checkouts
+pom.xml
+*.jar
+*.class
+*.pdb
+*.exe
+*.dll
+.lein-deps-sum
+.lein-failures
+.lein-plugins
+
+!RserveCLI2.dll
