@@ -75,7 +75,7 @@
 
 
 (defn init
-  "Initializes the RserveCLI2 connection."
+  "Initializes the RserveCLI2 connection using a configuration map."
   [{:as m
     :keys [server port user password]
     :or {server [127 0 0 1]
@@ -83,15 +83,15 @@
          ; deal with empty user/password strings
          user (not-empty-or-nil m :user)
          password (not-empty-or-nil m :password)}}]
-  (cond (string? server) (init-with-ip server port user password)
-        (vector? server) (init-with-hostname server port user password)
+  (cond (string? server) (init-with-hostname server port user password)
+        (vector? server) (init-with-ip server port user password)
         :else (throw (ArgumentException. "invalid server", server))))
 
 
 (defn open
   "Alias for 'rserve.cli2.rconnection/init'."
-  [& xs]
-  (init xs))
+  [m]
+  (init m))
 
 
 (defn- get-rc

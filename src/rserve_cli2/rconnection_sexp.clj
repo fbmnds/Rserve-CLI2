@@ -79,11 +79,33 @@
   (.GetHashCode sexp))
 
 
+(defn sexp-count
+  "Returns the count of the given R expression."
+  [sexp]
+  (.Count sexp))
+
+
 (defn sexp-get-length
   "Returns the length of the n-th element in the R expression."
   [sexp n]
   (.GetLength sexp (int n)))
 
+
+(defn sexp-get-value-of-key
+  "Returns the value of the key in the R expression."
+  [sexp k]
+  (.Eval sexp k))
+
+
+(defn sexp-get-value-of-indices
+  "Returns the value of the indices in the R expression."
+  ([sexp i-1]
+     (.IndexOf sexp i-1))
+  ([sexp i-1 i-2]
+     (.IndexOf sexp i-1 i-2)))
+
+
+(defmacro dbg [x] `(let [x# ~x] (do (println '~x "->" x#) x#)))
 
 (defn sexp-add
   "Adds a key, value pair to the R expression; key must be a string."
@@ -91,8 +113,8 @@
   (if (string? k)
     (let [kvp
           (|System.Collections.Generic.KeyValuePair`2[System.String, System.Object]|. k v)]
-      (.Add sexp kvp))
-    (throw (ArgumentException. "invalid type (must be string) of key ", k))))
+      (dbg (.Add sexp kvp)))
+    (throw (ArgumentException. "invalid type (must be string) of key ", k)))
 
 
 (defn sexp-contains?
