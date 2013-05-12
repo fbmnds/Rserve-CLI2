@@ -1,10 +1,12 @@
 (in-ns 'rserve-cli2.rconnection)
 
 
-(defn sexp-make-data-frame
-  "Makes a R data frame of given key-value list 'cols' and string list 'row-labels'."
-  [& cols row-labels]
-  (RserveCLI2.Sexp/MakeDataFrame cols row-labels))
+
+(defn sexp-make-empty-data-frame
+  "Makes an empty R data frame."
+  []
+  (ref (RserveCLI2.Sexp/MakeDataFrame nil nil)))
+
 
 
 ;;         public static Sexp Make( object x )
@@ -30,65 +32,9 @@
 ;;                                                                                          x.GetType().Name ) );
 
 
-(defn convert-vector-to-ienumerable
-  ""
-  [v type]
-  )
-
-
-(defn sexp-make
-  ""
-  ([x]
-     (cond (or
-            (= (class x) System.Boolean)
-            (= (class x) System.Double)
-            (= (class x) System.Decimal)
-            (= (class x) System.Int32)
-            (= (class x) System.Int64)
-            (= (class x) System.DateTime)
-            (= (class x) System.String)) (RserveCLI2.Sexp/Make x)
-            () (RserveCLI2.Sexp/Make x)
-            :else (throw (.ArgumentException
-                          "no conversion rule for type", (str (class x))))))
-  ([v type]
-     (cond (and
-            (vector? v)
-            (= type :boolean)
-            (= type :double)
-            (= type :decimal)
-            (= type :int)
-            (= type :int32)
-            (= type :int64)
-            ))))
-
-
-
-
-
-;; (last (let [r (System.Linq.Enumerable/Range (double 0) (double 10))] (to-array r)))
-                                        ;
-
-;; user=> (prn (let [r (RserveCLI2.Sexp/Make (System.Linq.Enumerable/Range (int 1) (int 10)))] r))
-;; #<SexpArrayInt 1 2 3 4 5 6 7 8 9 10>
-;;
-;; user=> (last (let [r (RserveCLI2.Sexp/Make (System.Linq.Enumerable/Range (int 1) (int 10)))] r))
-;; #<SexpArrayInt 10>
-;;
-;; user=> (class (last (let [r (RserveCLI2.Sexp/Make (System.Linq.Enumerable/Range (int 1) (int 10)))] r)))
-;; RserveCLI2.SexpArrayInt
-;;
-;; user=> (class (first (let [r (RserveCLI2.Sexp/Make (System.Linq.Enumerable/Range (int 1) (int 10)))] r)))
-;; RserveCLI2.SexpArrayInt
-;;
-;; user=> (prn (first (let [r (RserveCLI2.Sexp/Make (System.Linq.Enumerable/Range (int 1) (int 10)))] r)))
-;; #<SexpArrayInt 1>
-;;
-;; user=> (class (let [r (RserveCLI2.Sexp/Make (System.Linq.Enumerable/Range (int 1) (int 10)))] r))
-;; RserveCLI2.SexpArrayInt
-
-
 
 (defn sexp-array-with-fn
+  "Returns an R expression using the given constructor, applies optionally a type conversion."
   ([v f]
      (let [r (ref (f))]
        (dosync (doseq [s v] (.Add @r s))) r))
@@ -97,33 +43,73 @@
        (dosync (doseq [s v] (.Add @r (convert s))) r))))
 
 
-
 (defn sexp-of-string-array
+  "Returns an R expression on the given vector of strings."
   [v]
   (sexp-array-with-fn v (fn [] (RserveCLI2.SexpArrayString.))))
 
 
 (defn sexp-of-double-array
+  "Returns an R expression on the given double vector."
   [v]
   (sexp-array-with-fn v (fn [] (RserveCLI2.SexpArrayDouble.))))
 
 
-;; (def r2 (sexp-of-double-array (vec (map #(double %) (range 1000000)))))
-;; (last @r2)
-;; DO NOT DO THIS - prints r2 = (last r2) = object information... 1 - 1000000 ...
-;; (last (sexp-of-double-array (vec (map #(double %) (range 100000)))))
-
-
 (defn sexp-of-decimal-array
+  "Returns an R expression of type Double on the given decimal vector."
   [v]
   (sexp-array-with-fn v (fn [] (RserveCLI2.SexpArrayDouble.)) double))
 
 
 (defn sexp-of-int-as-double-array
+  "Returns an R expression of type Double on the given integer vector."
   [v]
   (sexp-array-with-fn v (fn [] (RserveCLI2.SexpArrayDouble.)) double))
 
 
 (defn sexp-of-int-array
+  "Returns an R expression on the given integer vector."
   [v]
   (sexp-array-with-fn v (fn [] (RserveCLI2.SexpArrayInt.)) int))
+
+
+(defn sexp-get-hash-code
+  "Returns the hash code of the given R expression."
+  [sexp]
+  (.GetHashCode sexp))
+
+
+(defn sexp-get-length
+  "Returns the length of the n-th element in the R expression."
+  [sexp n]
+  (.GetLength sexp (int n)))
+
+
+(defn sexp-add
+  "Adds a key, value pair to the R expression; key must be a string."
+  [sexp k v]
+  (if (string? k)
+    (let [kvp
+          (|System.Collections.Generic.KeyValuePair`2[System.String, System.Object]|. k v)]
+      (.Add sexp kvp))
+    (throw (ArgumentException. "invalid type (must be string) of key ", k))))
+
+
+(defn sexp-contains?
+  "Indicates whether the R expression contains the key, value pair; key must be a string."
+  [sexp k v]
+  (if (string? k)
+    (let [kvp
+          (|System.Collections.Generic.KeyValuePair`2[System.String, System.Object]|. k v)]
+      (.Contains sexp kvp))
+    (throw (ArgumentException. "invalid type (must be string) of key ", k))))
+
+
+(defn sexp-remove
+  "removes a key, value pair from the R expression; key must be a string."
+  [sexp k v]
+  (if (string? k)
+    (let [kvp
+          (|System.Collections.Generic.KeyValuePair`2[System.String, System.Object]|. k v)]
+      (.Remove sexp kvp))
+    (throw (ArgumentException. "invalid type (must be string) of key ", k))))

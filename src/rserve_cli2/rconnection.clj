@@ -94,7 +94,7 @@
   (init xs))
 
 
-(defn- get-handle
+(defn- get-rc
   "Gets the RserveCLI2 connection or dies."
   []
   (if @*rserve-connection*
@@ -107,10 +107,52 @@
   []
   (dosync
    (ref-set *rserve-connection*
-            {:cursor (and (.Dispose (get-handle)) nil)})
+            {:cursor (and (.Dispose (get-rc)) nil)})
    (ref-set *rserve-connection* nil)))
 
 (defn close
   "Alias for 'rserve.cli2.rconnection/dispose'."
   []
   (dispose))
+
+
+(defn assign
+  "Assigns a label to an R expression on the R server."
+  [label sexp]
+  (.Assign (get-rc) label sexp))
+
+
+(defn evaluate
+  "Evaluates an R command string, returns the result."
+  [cmd]
+  (.Eval (get-rc) cmd))
+
+
+(defn evaluate-remote-only
+  "Evaluates an R command string, does not return the result."
+  [cmd]
+  (.VoidEval (get-rc) cmd))
+
+
+(defn read-file
+  "Reads a file from R server"
+  [file-name]
+  (.ReadFile (get-rc) file-name))
+
+
+(defn remove-file
+  "Deletes a file on R server"
+  [file-name]
+  (.RemoveFile (get-rc) file-name))
+
+
+(defn write-file
+  "Writes a file to the R server."
+  [file-name stream]
+  (.WriteFile (get-rc) file-name stream))
+
+
+(defn copy-to
+  ".NET 4's CopyTo"
+  [from to]
+  (.CopyTo (get-rc) from to))
