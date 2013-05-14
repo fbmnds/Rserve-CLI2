@@ -136,8 +136,10 @@
 
 (defn read-file
   "Reads a file from R server"
-  [file-name]
-  (.ReadFile (get-rc) file-name))
+  [from-file & to-file]
+  (let [f (System.IO.File/Create (or to-file from-file))]
+    (.CopyTo (.ReadFile (get-rc) from-file) f)
+    (.Dispose f)))
 
 
 (defn remove-file

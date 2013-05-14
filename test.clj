@@ -72,9 +72,18 @@
 ;; plot to PDF on server side
 ;;
 (rc/evaluate-remote-only "library(ggplot2)")
-(rc/evaluate-remote-only "pdf(\"outfile.pdf\")")
+(rc/evaluate-remote-only "pdf('Data Plot.pdf')")
 (rc/evaluate-remote-only "print(qplot(x,y, data=d))")
 (rc/evaluate-remote-only "dev.off()")
+
+;; steps:
+;; generate a #<FileStream System.IO.FileStream>
+;; (def f (System.IO.File/Create "outfile.pdf"))
+;; (.CopyTo (rc/read-file "outfile.pdf") f)
+;; (.Dispose f)
+
+;; improved read-file function:
+(rc/read-file "Data Plot.pdf")
 
 
 
