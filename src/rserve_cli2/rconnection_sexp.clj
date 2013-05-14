@@ -2,10 +2,18 @@
 
 
 
-(defn sexp-make-empty-data-frame
-  "Makes an empty R data frame."
-  []
-  (ref (RserveCLI2.Sexp/MakeDataFrame nil nil)))
+;; (defn sexp-make-empty-data-frame
+;;   "Makes an empty R data frame."
+;;   []
+;;   (RserveCLI2.Sexp/MakeDataFrame
+;;    (|System.Collections.Generic.KeyValuePair`2[System.String, System.Object]|. "0xFF" nil)
+;;    (|System.Collections.Generic.List`1[System.String]|. "0xFF")))
+
+
+ (defn sexp-make-empty-data-frame
+   "Makes an empty R data frame."
+   []
+   (RserveCLI2.Sexp/MakeDataFrame nil nil))
 
 
 
@@ -91,14 +99,14 @@
   (.GetLength sexp (int n)))
 
 
-(defn sexp-get-value-of-key
-  "Returns the value of the key in the R expression."
+(defn sexp-get-key-of-value
+  "Returns the key of the value in the R expression, or -1 if not found."
   [sexp k]
   (.Eval sexp k))
 
 
-(defn sexp-get-value-of-indices
-  "Returns the value of the indices in the R expression."
+(defn sexp-get-index-of-values
+  "Returns the arrax index / matrix indices of a value in the R expression, or -1 if not found."
   ([sexp i-1]
      (.IndexOf sexp i-1))
   ([sexp i-1 i-2]
@@ -113,8 +121,8 @@
   (if (string? k)
     (let [kvp
           (|System.Collections.Generic.KeyValuePair`2[System.String, System.Object]|. k v)]
-      (dbg (.Add sexp kvp)))
-    (throw (ArgumentException. "invalid type (must be string) of key ", k)))
+      (.Add sexp kvp))
+    (throw (ArgumentException. "invalid type (must be string) of key ", k))))
 
 
 (defn sexp-contains?
